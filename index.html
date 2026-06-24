@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0F1F38">
+<title>Quản Lý Dự Án</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --navy-950:#0A1628;
+    --navy-900:#0F1F38;
+    --navy-800:#16294A;
+    --navy-700:#1E3660;
+    --navy-600:#2A4880;
+    --steel-400:#5C7AA8;
+    --steel-300:#8FA8CC;
+    --paper:#F6F4EE;
+    --paper-dim:#E8E4D8;
+    --amber:#E8893A;
+    --amber-dim:#C97326;
+    --brand:#2F7FE0;
+    --brand-dim:#1E63B8;
+    --ok:#3FA876;
+    --warn:#E8893A;
+    --risk:#D85C4C;
+    --done:#5C7AA8;
+    --line:rgba(255,255,255,0.08);
+    --line-dark:rgba(10,22,40,0.1);
+    --shadow:0 8px 24px rgba(10,22,40,0.18);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+
+  body{
+    background:var(--paper);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    color:var(--navy-900);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(10,22,40,0.025) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(10,22,40,0.025) 40px);
+  }
+
+  .app{
+    max-width:1280px;
+    margin:0 auto;
+    min-height:100vh;
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ===== HEADER ===== */
+  .header{
+    background:linear-gradient(160deg, var(--navy-950) 0%, var(--navy-800) 100%);
+    color:var(--paper);
+    padding:28px 40px 22px;
+    position:relative;
+    overflow:hidden;
+    border-bottom:3px solid var(--brand);
+  }
+  .header::after{
+    content:"";
+    position:absolute;
+    top:-40%; right:-10%;
+    width:240px;height:240px;
+    background:radial-gradient(circle, rgba(47,127,224,0.16), transparent 70%);
+    pointer-events:none;
+  }
+  .header-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    position:relative;
+    z-index:1;
+  }
+  .brand-block{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex:1;
+    min-width:0;
+  }
+  .brand-logo{
+    height:56px;
+    width:auto;
+    flex-shrink:0;
+  }
+  .company-block{flex:1; min-width:0;}
+  .company-label{
+    font-size:11.5px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--steel-300);
+    font-weight:600;
+    margin:0 0 4px;
+  }
+  .company-name{
+    font-family:'Georgia','Times New Roman',serif;
+    font-size:30px;
+    font-weight:700;
+    line-height:1.15;
+    margin:0;
+    color:#fff;
+    word-break:break-word;
+    cursor:text;
+    border-bottom:1px dashed transparent;
+  }
+  .company-name:focus{outline:none; border-bottom-color:var(--brand);}
+  .company-name:empty::before{content:"Nhập tên công ty"; color:var(--steel-400);}
+
+  .clock-block{
+    text-align:right;
+    flex-shrink:0;
+    border-left:1px solid var(--line);
+    padding-left:14px;
+  }
+  .clock-time{
+    font-family:'SF Mono','Courier New',monospace;
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:0.02em;
+    color:#5DA8F0;
+  }
+  .clock-date{
+    font-size:12.5px;
+    color:var(--steel-300);
+    margin-top:4px;
+    text-transform:capitalize;
+  }
+
+  .header-meta{
+    display:flex;
+    gap:14px;
+    margin-top:16px;
+    position:relative;
+    z-index:1;
+  }
+  .meta-pill{
+    font-size:12.5px;
+    color:var(--steel-300);
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:5px 12px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .meta-pill b{color:var(--paper); font-weight:700;}
+
+  /* ===== MASTER-DETAIL LAYOUT ===== */
+  .workspace{
+    flex:1;
+    display:flex;
+    align-items:flex-start;
+    min-height:0;
+  }
+
+  .sidebar{
+    width:340px;
+    flex-shrink:0;
+    border-right:1px solid var(--line-dark);
+    background:var(--paper-dim);
+    height:calc(100vh - 132px);
+    overflow-y:auto;
+    padding:16px 14px 100px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    position:sticky;
+    top:132px;
+  }
+
+  .sidebar-item{
+    background:#fff;
+    border-radius:11px;
+    border:1px solid var(--line-dark);
+    padding:12px 14px;
+    cursor:pointer;
+    transition:border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    position:relative;
+    overflow:hidden;
+  }
+  .sidebar-item:hover{box-shadow:0 2px 8px rgba(10,22,40,0.08);}
+  .sidebar-item:active{transform:scale(0.98);}
+  .sidebar-item.active{
+    border-color:var(--brand);
+    box-shadow:0 0 0 2px rgba(47,127,224,0.18);
+  }
+  .sidebar-item-bar{
+    position:absolute; left:0; top:0; bottom:0; width:4px;
+  }
+  .sidebar-item-title{
+    font-size:14px; font-weight:700; color:var(--navy-900);
+    margin:0 0 6px; padding-left:8px;
+    line-height:1.3; word-break:break-word;
+  }
+  .sidebar-item-title:empty::before{content:"Tên dự án"; color:#C2CADC; font-weight:500;}
+  .sidebar-item-meta{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:8px; padding-left:8px;
+  }
+  .sidebar-item-progress{
+    font-size:11px; color:var(--steel-400); font-weight:600;
+  }
+
+  .detail-panel{
+    flex:1;
+    min-width:0;
+    padding:24px 40px 120px;
+  }
+
+  .detail-empty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    color:var(--steel-400);
+    min-height:50vh;
+    padding:40px;
+  }
+  .detail-empty .icon{font-size:44px; margin-bottom:12px; opacity:0.55;}
+  .detail-empty p{font-size:14.5px; margin:4px 0;}
+  .detail-empty .sub{font-size:12.5px; color:#A8B4C8;}
+
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--steel-400);
+  }
+  .empty-state .icon{font-size:40px; margin-bottom:10px; opacity:0.6;}
+  .empty-state p{font-size:14px; margin:4px 0;}
+  .empty-state .sub{font-size:12.5px; color:#A8B4C8;}
+
+  .card{
+    background:#fff;
+    border-radius:14px;
+    border:1px solid var(--line-dark);
+    box-shadow:0 2px 8px rgba(10,22,40,0.06);
+    overflow:hidden;
+    max-width:760px;
+  }
+
+  .card-bar{height:4px; width:100%;}
+  .bar-ok{background:var(--ok);}
+  .bar-warn{background:var(--warn);}
+  .bar-risk{background:var(--risk);}
+  .bar-done{background:var(--done);}
+
+  .card-head{
+    padding:14px 16px 12px;
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .card-title-wrap{flex:1; min-width:0;}
+  .card-eyebrow{
+    font-size:10px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--steel-400);
+    font-weight:700;
+    margin:0 0 3px;
+  }
+  .card-title{
+    font-size:16.5px;
+    font-weight:700;
+    color:var(--navy-900);
+    margin:0;
+    line-height:1.3;
+    word-break:break-word;
+  }
+  .card-title:empty::before{content:"Tên dự án"; color:#C2CADC; font-weight:500;}
+
+  .status-chip{
+    font-size:11.5px;
+    font-weight:700;
+    padding:5px 10px;
+    border-radius:20px;
+    white-space:nowrap;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .status-chip::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor;}
+  .chip-ok{background:#E3F4EB; color:var(--ok);}
+  .chip-warn{background:#FBEADB; color:var(--amber-dim);}
+  .chip-risk{background:#FBE3E0; color:var(--risk);}
+  .chip-done{background:#E8EDF6; color:var(--done);}
+
+  .card-sub{
+    padding:0 16px 14px;
+    display:flex;
+    gap:16px;
+    font-size:12px;
+    color:var(--steel-400);
+  }
+  .card-sub span b{color:var(--navy-700);}
+
+  .card-body-inner{
+    padding:4px 16px 18px;
+    border-top:1px solid #F0EEE6;
+  }
+
+  .field-row{margin-top:14px;}
+  .field-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--steel-400);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:6px;
+  }
+  .field-label .dot{width:5px;height:5px;border-radius:50%;background:var(--brand);}
+
+  .status-selector{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .status-opt{
+    font-size:12px;
+    font-weight:600;
+    padding:7px 11px;
+    border-radius:8px;
+    border:1.5px solid #E3E0D5;
+    background:#fff;
+    color:var(--steel-400);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .status-opt.active-ok{background:var(--ok); border-color:var(--ok); color:#fff;}
+  .status-opt.active-warn{background:var(--amber); border-color:var(--amber); color:#fff;}
+  .status-opt.active-risk{background:var(--risk); border-color:var(--risk); color:#fff;}
+  .status-opt.active-done{background:var(--done); border-color:var(--done); color:#fff;}
+
+  textarea, input.text-input{
+    width:100%;
+    border:1.5px solid #E3E0D5;
+    border-radius:10px;
+    padding:10px 12px;
+    font-family:inherit;
+    font-size:13.5px;
+    color:var(--navy-900);
+    background:#FCFBF8;
+    resize:none;
+    transition:border-color 0.15s;
+  }
+  textarea:focus, input.text-input:focus{
+    outline:none;
+    border-color:var(--steel-400);
+    background:#fff;
+  }
+  textarea{min-height:64px; line-height:1.5;}
+
+  .progress-row{
+    display:flex; align-items:center; gap:10px;
+  }
+  .progress-track{
+    flex:1; height:8px; border-radius:6px;
+    background:#EDEAE0; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; border-radius:6px;
+    background:linear-gradient(90deg, var(--steel-400), var(--navy-700));
+    transition:width 0.25s;
+  }
+  .progress-val{
+    font-family:'SF Mono','Courier New',monospace;
+    font-size:13px; font-weight:700; color:var(--navy-700);
+    width:42px; text-align:right;
+  }
+
+  .milestone-grid{
+    display:flex; flex-direction:column; gap:6px; margin-top:10px;
+  }
+  .milestone-btn{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 10px; border-radius:8px;
+    border:1.5px solid #E3E0D5; background:#fff;
+    cursor:pointer; transition:all 0.15s;
+    text-align:left; width:100%;
+  }
+  .milestone-btn:hover{border-color:var(--steel-400);}
+  .milestone-btn.active{
+    border-color:var(--brand); background:#EAF2FC;
+    box-shadow:0 0 0 1px var(--brand) inset;
+  }
+  .milestone-pct{
+    font-family:'SF Mono','Courier New',monospace;
+    font-size:12px; font-weight:800; color:var(--navy-800);
+    width:38px; flex-shrink:0;
+  }
+  .milestone-btn.active .milestone-pct{color:var(--brand-dim);}
+  .milestone-label{
+    flex:1; min-width:0;
+    font-size:12px; color:var(--steel-400); line-height:1.3;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .milestone-btn.active .milestone-label{color:var(--navy-700);}
+  .milestone-del{
+    width:20px; height:20px; flex-shrink:0; border:none; background:transparent;
+    color:#D3CFC2; cursor:pointer; border-radius:5px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .milestone-del:hover{background:#F4E5E2; color:var(--risk);}
+  .milestone-add-btn{
+    display:flex; align-items:center; gap:5px; justify-content:center;
+    padding:7px 10px; border-radius:8px;
+    border:1.5px dashed #D8D4C6; background:transparent;
+    color:var(--steel-400); font-size:12px; font-weight:600;
+    cursor:pointer; transition:all 0.15s; width:100%;
+  }
+  .milestone-add-btn:hover{border-color:var(--brand); color:var(--brand-dim);}
+
+  /* Today's notes list */
+  .note-list{display:flex; flex-direction:column; gap:9px;}
+  .note-item{
+    display:flex; flex-direction:column; gap:8px;
+    background:#FCFBF8; border:1px solid #ECE9DE; border-radius:9px;
+    padding:10px 10px 11px;
+  }
+  .note-row-main{
+    display:flex; align-items:flex-start; gap:9px;
+  }
+  .note-check{
+    width:18px; height:18px; border-radius:5px;
+    border:2px solid #CFCBBC; flex-shrink:0; margin-top:1px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    background:#fff; transition:all 0.15s;
+  }
+  .note-check.checked{background:var(--ok); border-color:var(--ok);}
+  .note-check svg{width:11px; height:11px; color:#fff; opacity:0; transition:opacity 0.1s;}
+  .note-check.checked svg{opacity:1;}
+  .note-text{
+    flex:1; font-size:13px; line-height:1.45; color:var(--navy-900);
+    outline:none; word-break:break-word;
+  }
+  .note-text.checked{color:#B6B2A4; text-decoration:line-through;}
+  .note-text:empty::before{content:"Nội dung công việc..."; color:#C2CADC;}
+  .note-del{
+    width:22px; height:22px; flex-shrink:0; border:none; background:transparent;
+    color:#D3CFC2; cursor:pointer; border-radius:5px; display:flex; align-items:center; justify-content:center;
+  }
+  .note-del:hover{background:#F4E5E2; color:var(--risk);}
+
+  .note-dates-row{
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+    padding-left:27px;
+  }
+  .project-dates-row{
+    display:flex; flex-wrap:wrap; align-items:center; gap:14px;
+    background:#FCFBF8; border:1px solid #ECE9DE; border-radius:10px;
+    padding:12px 14px;
+  }
+  .project-dates-row .note-date-field input[type=date]{
+    font-size:12.5px; padding:6px 9px;
+  }
+  .note-date-field{
+    display:flex; flex-direction:column; gap:3px;
+  }
+  .note-date-field span{
+    font-size:9.5px; font-weight:700; letter-spacing:0.04em;
+    text-transform:uppercase; color:#A8A498;
+  }
+  .note-date-field input[type=date]{
+    border:1.3px solid #E3E0D5; border-radius:7px;
+    padding:4px 7px; font-size:11.5px; font-family:inherit;
+    color:var(--navy-800); background:#fff;
+  }
+  .note-date-field input[type=date]:focus{outline:none; border-color:var(--steel-400);}
+  .note-deadline-badge{
+    font-size:11px; font-weight:700; padding:5px 10px;
+    border-radius:20px; white-space:nowrap; margin-left:auto;
+  }
+  .badge-warn{background:#FBEADB; color:var(--amber-dim);}
+  .badge-risk{background:#FBE3E0; color:var(--risk);}
+
+  .add-note-btn{
+    margin-top:8px; font-size:12.5px; font-weight:600; color:var(--steel-400);
+    background:none; border:1.5px dashed #D8D4C6; border-radius:9px;
+    padding:8px; width:100%; cursor:pointer; transition:all 0.15s;
+  }
+  .add-note-btn:hover{border-color:var(--steel-400); color:var(--navy-700);}
+
+  .card-footer-actions{
+    display:flex; justify-content:flex-end; margin-top:16px;
+    padding-top:12px; border-top:1px solid #F0EEE6;
+  }
+  .del-project-btn{
+    font-size:12px; font-weight:600; color:var(--risk);
+    background:#FBE3E0; border:none; border-radius:8px; padding:7px 12px;
+    cursor:pointer; display:flex; align-items:center; gap:5px;
+  }
+
+  /* FAB */
+  .fab{
+    position:sticky;
+    bottom:14px;
+    width:100%;
+    height:48px; border-radius:12px;
+    background:var(--brand); color:#fff; border:none;
+    box-shadow:0 6px 16px rgba(47,127,224,0.4);
+    font-size:14.5px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    gap:8px;
+    cursor:pointer; z-index:10; transition:transform 0.15s;
+    flex-shrink:0;
+    margin-top:auto;
+  }
+  .fab:active{transform:scale(0.97);}
+
+  .footer-note{
+    text-align:center; font-size:11px; color:#B6B2A4;
+    padding:14px 20px 22px;
+  }
+
+  /* toast */
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--navy-900); color:#fff; padding:10px 18px; border-radius:30px;
+    font-size:13px; font-weight:600; box-shadow:var(--shadow);
+    opacity:0; pointer-events:none; transition:all 0.25s; z-index:50;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <div class="header-top">
+      <div class="brand-block">
+        <img src="logo.png" alt="Logo công ty" class="brand-logo">
+        <div class="company-block">
+          <p class="company-label">Quản lý dự án</p>
+          <h1 class="company-name" id="companyName" contenteditable="true" spellcheck="false"></h1>
+        </div>
+      </div>
+      <div class="clock-block">
+        <div class="clock-time" id="clockTime">--:--:--</div>
+        <div class="clock-date" id="clockDate">-- --- ----</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="meta-pill">Dự án: <b id="metaTotal">0</b></div>
+      <div class="meta-pill">Đang chạy: <b id="metaActive">0</b></div>
+      <div class="meta-pill">Cần lưu ý: <b id="metaRisk">0</b></div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar" id="sidebarList">
+      <!-- sidebar items injected here -->
+      <button class="fab" id="fabAdd" title="Thêm dự án">+ Thêm dự án mới</button>
+    </aside>
+    <section class="detail-panel" id="detailPanel">
+      <!-- detail content injected here -->
+    </section>
+  </main>
+
+  <div class="footer-note">Dữ liệu được lưu tự động trên thiết bị này</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== STORAGE ===== */
+const STORAGE_KEY = 'pm_app_data_v1';
+
+const DEFAULT_MILESTONES = [
+  {pct:10,  label:'Đang nghiên cứu dự án'},
+  {pct:30,  label:'Đã ký hợp đồng / PO'},
+  {pct:40,  label:'Đã đặt hàng'},
+  {pct:60,  label:'Hàng đã về - đang gia công'},
+  {pct:80,  label:'Đã giao hàng'},
+  {pct:100, label:'Hoàn thành'}
+];
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed.progressMilestones) || parsed.progressMilestones.length===0){
+        parsed.progressMilestones = DEFAULT_MILESTONES.slice();
+      }
+      return parsed;
+    }
+  }catch(e){}
+  return {
+    companyName: 'ABC SOLUTIONS',
+    projects: [],
+    progressMilestones: DEFAULT_MILESTONES.slice()
+  };
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadData();
+let expandedId = null;
+
+/* ===== CLOCK ===== */
+const dayNames = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+function tick(){
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clockTime').textContent = `${hh}:${mm}:${ss}`;
+  const dateStr = `${dayNames[now.getDay()]}, ${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+  document.getElementById('clockDate').textContent = dateStr;
+}
+tick();
+setInterval(tick, 1000);
+
+/* ===== UTIL ===== */
+function uid(){ return 'p' + Date.now() + Math.floor(Math.random()*1000); }
+function todayKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+/* ===== DEADLINE BADGE LOGIC =====
+- Luôn tính lại theo dữ liệu ngày hiện tại mỗi lần gọi (không lưu/cache giá trị cũ),
+  nên khi người dùng đổi bất kỳ mốc ngày nào, cảnh báo cập nhật ngay theo giá trị mới.
+- Đã hoàn thành (checked) -> không cảnh báo (chỉ áp dụng cho note-level)
+- Vượt deadline -> đỏ "Đã quá deadline"
+- Còn cách deadline nhưng đã/sắp qua ngày dự kiến hoàn thành (trong vòng 2 ngày trước, hoặc đã trễ dự kiến) -> vàng
+- Còn lại -> không hiện badge
+*/
+function parseLocalDate(str){
+  if(!str) return null;
+  const parts = str.split('-').map(Number);
+  if(parts.length!==3 || parts.some(isNaN)) return null;
+  return new Date(parts[0], parts[1]-1, parts[2]);
+}
+function startOfToday(){
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  return d;
+}
+function getDeadlineBadge(item){
+  if(item.checked) return null;
+  const today = startOfToday();
+  const deadline = parseLocalDate(item.deadline);
+  const expected = parseLocalDate(item.expectedDate);
+
+  if(deadline && today > deadline){
+    return {level:'risk', text:'⚠ Đã quá deadline'};
+  }
+  if(expected){
+    const diffDays = Math.round((expected - today) / (1000*60*60*24));
+    if(diffDays < 0){
+      return {level:'warn', text:'Đã quá ngày dự kiến'};
+    }
+    if(diffDays <= 2){
+      return {level:'warn', text: diffDays===0 ? 'Hạn dự kiến hôm nay' : `Còn ${diffDays} ngày đến hạn dự kiến`};
+    }
+  }
+  if(deadline){
+    const diffDeadline = Math.round((deadline - today) / (1000*60*60*24));
+    if(diffDeadline <= 2 && diffDeadline >= 0){
+      return {level:'warn', text: diffDeadline===0 ? 'Deadline hôm nay' : `Còn ${diffDeadline} ngày đến deadline`};
+    }
+  }
+  return null;
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+const STATUS_DEFS = {
+  ok:   {label:'Đúng tiến độ', chip:'chip-ok', bar:'bar-ok'},
+  warn: {label:'Cần theo dõi', chip:'chip-warn', bar:'bar-warn'},
+  risk: {label:'Trễ / Rủi ro', chip:'chip-risk', bar:'bar-risk'},
+  done: {label:'Hoàn thành', chip:'chip-done', bar:'bar-done'}
+};
+
+// Thứ tự ưu tiên hiển thị trong danh sách: Trễ/Rủi ro -> Cần theo dõi -> Đúng tiến độ -> Hoàn thành
+const STATUS_ORDER = {risk:0, warn:1, ok:2, done:3};
+
+function getSortedProjects(){
+  return [...state.projects].sort((a,b)=>{
+    const oa = STATUS_ORDER[a.status] ?? 99;
+    const ob = STATUS_ORDER[b.status] ?? 99;
+    return oa - ob;
+  });
+}
+
+/* ===== COMPANY NAME ===== */
+const companyEl = document.getElementById('companyName');
+companyEl.textContent = state.companyName || '';
+companyEl.addEventListener('input', ()=>{
+  state.companyName = companyEl.textContent;
+  saveData();
+});
+companyEl.addEventListener('blur', ()=>{ saveData(); });
+
+/* ===== PROJECT MODEL =====
+project = {
+  id, title, status: 'ok'|'warn'|'risk'|'done', progress: 0-100,
+  summary: string, statusNote: string,
+  startDate, expectedDate, deadline: string (YYYY-MM-DD),
+  notes: [{id, text, checked, day, startDate, expectedDate}]
+}
+*/
+
+function newProject(){
+  return {
+    id: uid(),
+    title: '',
+    status: 'ok',
+    progress: 0,
+    summary: '',
+    statusNote: '',
+    startDate: '',
+    expectedDate: '',
+    deadline: '',
+    notes: []
+  };
+}
+
+function addProject(){
+  const p = newProject();
+  state.projects.unshift(p);
+  expandedId = p.id;
+  saveData();
+  render();
+  setTimeout(()=>{
+    const el = document.querySelector(`[data-title-id="${p.id}"]`);
+    if(el){ el.focus(); }
+  }, 50);
+}
+
+function deleteProject(id){
+  if(!confirm('Xoá dự án này? Hành động không thể hoàn tác.')) return;
+  state.projects = state.projects.filter(p=>p.id!==id);
+  saveData();
+  render();
+  showToast('Đã xoá dự án');
+}
+
+function addNote(projectId){
+  const p = state.projects.find(x=>x.id===projectId);
+  if(!p) return;
+  const today = new Date();
+  const todayISO = today.toISOString().slice(0,10);
+  p.notes.push({
+    id: uid(), text:'', checked:false, day: todayKey(),
+    startDate: todayISO, expectedDate:''
+  });
+  saveData();
+  render();
+  setTimeout(()=>{
+    const list = document.querySelectorAll(`[data-note-text][data-pid="${projectId}"]`);
+    if(list.length) list[list.length-1].focus();
+  }, 50);
+}
+
+function deleteNote(projectId, noteId){
+  const p = state.projects.find(x=>x.id===projectId);
+  if(!p) return;
+  p.notes = p.notes.filter(n=>n.id!==noteId);
+  saveData();
+  render();
+}
+
+function toggleNote(projectId, noteId){
+  const p = state.projects.find(x=>x.id===projectId);
+  if(!p) return;
+  const n = p.notes.find(x=>x.id===noteId);
+  if(!n) return;
+  n.checked = !n.checked;
+  saveData();
+  render();
+}
+
+/* ===== RENDER ===== */
+function updateMeta(){
+  document.getElementById('metaTotal').textContent = state.projects.length;
+  document.getElementById('metaActive').textContent = state.projects.filter(p=>p.status==='ok'||p.status==='warn').length;
+  document.getElementById('metaRisk').textContent = state.projects.filter(p=>p.status==='risk').length;
+}
+
+function render(){
+  updateMeta();
+  renderSidebar();
+  renderDetail();
+}
+
+function renderSidebar(){
+  const sidebar = document.getElementById('sidebarList');
+  const fabBtn = document.getElementById('fabAdd');
+  // clear all but keep the fab button node, re-append at the end
+  sidebar.innerHTML = '';
+
+  if(state.projects.length===0){
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = `
+      <div class="icon">📋</div>
+      <p>Chưa có dự án nào</p>
+      <p class="sub">Nhấn "Thêm dự án mới" để bắt đầu theo dõi</p>
+    `;
+    sidebar.appendChild(empty);
+  } else {
+    getSortedProjects().forEach(p=>{
+      const def = STATUS_DEFS[p.status] || STATUS_DEFS.ok;
+      const isActive = expandedId === p.id;
+      const item = document.createElement('div');
+      item.className = 'sidebar-item' + (isActive ? ' active':'');
+      item.setAttribute('data-select', p.id);
+      item.innerHTML = `
+        <div class="sidebar-item-bar ${def.bar}"></div>
+        <h3 class="sidebar-item-title"></h3>
+        <div class="sidebar-item-meta">
+          <span class="status-chip ${def.chip}">${def.label}</span>
+          <span class="sidebar-item-progress">${p.progress}%</span>
+        </div>
+      `;
+      item.querySelector('.sidebar-item-title').textContent = p.title;
+      sidebar.appendChild(item);
+    });
+  }
+
+  sidebar.appendChild(fabBtn);
+
+  // click to select
+  sidebar.querySelectorAll('[data-select]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      expandedId = el.getAttribute('data-select');
+      render();
+    });
+  });
+}
+
+function renderDetail(){
+  const panel = document.getElementById('detailPanel');
+  panel.innerHTML = '';
+
+  const p = state.projects.find(x=>x.id===expandedId);
+
+  if(!p){
+    panel.innerHTML = `
+      <div class="detail-empty">
+        <div class="icon">👈</div>
+        <p>Chọn một dự án bên trái để xem chi tiết</p>
+        <p class="sub">Hoặc nhấn "Thêm dự án mới" để bắt đầu</p>
+      </div>`;
+    return;
+  }
+
+  const def = STATUS_DEFS[p.status] || STATUS_DEFS.ok;
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  card.innerHTML = `
+    <div class="card-bar ${def.bar}"></div>
+    <div class="card-head">
+      <div class="card-title-wrap">
+        <p class="card-eyebrow">Dự án</p>
+        <h3 class="card-title" contenteditable="true" spellcheck="false" data-title-id="${p.id}"></h3>
+      </div>
+      <span class="status-chip ${def.chip}">${def.label}</span>
+    </div>
+    <div class="card-sub">
+      <span>Tiến độ: <b>${p.progress}%</b></span>
+      <span>Công việc đang thực hiện: <b>${p.notes.filter(n=>n.day===todayKey()).length}</b></span>
+    </div>
+    <div class="card-body-inner">
+
+      <div class="field-row">
+        <div class="field-label"><span class="dot"></span>Tình trạng hiện tại</div>
+        <div class="status-selector" data-status-group="${p.id}">
+          ${Object.entries(STATUS_DEFS).map(([key,d])=>`
+            <div class="status-opt ${p.status===key?'active-'+key:''}" data-status-opt="${key}" data-pid="${p.id}">${d.label}</div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-label"><span class="dot"></span>Tiến độ tổng thể</div>
+        <div class="progress-row">
+          <div class="progress-track"><div class="progress-fill" style="width:${p.progress}%"></div></div>
+          <span class="progress-val">${p.progress}%</span>
+        </div>
+        <div class="milestone-grid" data-milestone-grid="${p.id}">
+          ${state.progressMilestones.slice().sort((a,b)=>a.pct-b.pct).map(m=>`
+            <div class="milestone-btn ${p.progress===m.pct?'active':''}" data-milestone-pct="${m.pct}" data-pid="${p.id}">
+              <span class="milestone-pct">${m.pct}%</span>
+              <span class="milestone-label">${escapeHtml(m.label)}</span>
+              <button type="button" class="milestone-del" data-del-milestone="${m.pct}" title="Xoá mốc này">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          `).join('')}
+          <button type="button" class="milestone-add-btn" data-add-milestone="${p.id}" title="Thêm mốc tiến độ mới">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+            Thêm mốc khác
+          </button>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-label"><span class="dot"></span>Mô tả / Tóm tắt dự án</div>
+        <textarea data-summary-id="${p.id}" placeholder="Mô tả ngắn về phạm vi, mục tiêu dự án...">${escapeHtml(p.summary)}</textarea>
+      </div>
+
+      <div class="field-row">
+        <div class="field-label"><span class="dot"></span>Thời gian thực hiện</div>
+        <div class="project-dates-row">
+          <label class="note-date-field">
+            <span>Bắt đầu</span>
+            <input type="date" value="${p.startDate||''}" data-project-date="start" data-pid="${p.id}">
+          </label>
+          <label class="note-date-field">
+            <span>Dự kiến hoàn thành</span>
+            <input type="date" value="${p.expectedDate||''}" data-project-date="expected" data-pid="${p.id}">
+          </label>
+          <label class="note-date-field">
+            <span>Deadline</span>
+            <input type="date" value="${p.deadline||''}" data-project-date="deadline" data-pid="${p.id}">
+          </label>
+          ${(()=>{ const b = getDeadlineBadge(p); return b ? `<span class="note-deadline-badge badge-${b.level}">${b.text}</span>` : ''; })()}
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-label"><span class="dot"></span>Hiện trạng dự án</div>
+        <textarea data-statusnote-id="${p.id}" placeholder="Diễn giải chi tiết hiện trạng: đã làm được gì, đang vướng gì, kế hoạch tiếp theo...">${escapeHtml(p.statusNote || '')}</textarea>
+      </div>
+
+      <div class="field-row">
+        <div class="field-label"><span class="dot"></span>Công việc đang thực hiện</div>
+        <div class="note-list" data-note-list="${p.id}">
+          ${p.notes.map(n=>{
+            return `
+            <div class="note-item">
+              <div class="note-row-main">
+                <div class="note-check ${n.checked?'checked':''}" data-note-check="${n.id}" data-pid="${p.id}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="note-text ${n.checked?'checked':''}" contenteditable="true" spellcheck="false" data-note-text data-note-id="${n.id}" data-pid="${p.id}"></div>
+                <button class="note-del" data-note-del="${n.id}" data-pid="${p.id}" title="Xoá">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+                </button>
+              </div>
+              <div class="note-dates-row">
+                <label class="note-date-field">
+                  <span>Bắt đầu</span>
+                  <input type="date" value="${n.startDate||''}" data-note-date="start" data-note-id="${n.id}" data-pid="${p.id}">
+                </label>
+                <label class="note-date-field">
+                  <span>Dự kiến hoàn thành</span>
+                  <input type="date" value="${n.expectedDate||''}" data-note-date="expected" data-note-id="${n.id}" data-pid="${p.id}">
+                </label>
+              </div>
+            </div>
+          `}).join('')}
+        </div>
+        <button class="add-note-btn" data-add-note="${p.id}">+ Thêm lưu ý công việc</button>
+      </div>
+
+      <div class="card-footer-actions">
+        <button class="del-project-btn" data-del-project="${p.id}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Xoá dự án
+        </button>
+      </div>
+
+    </div>
+  `;
+  panel.appendChild(card);
+
+  // set text contents safely (avoid HTML injection via contenteditable)
+  card.querySelector(`[data-title-id="${p.id}"]`).textContent = p.title;
+  p.notes.forEach(n=>{
+    const el = card.querySelector(`[data-note-id="${n.id}"]`);
+    if(el) el.textContent = n.text;
+  });
+
+  attachDetailEvents(p.id);
+}
+
+function attachDetailEvents(currentId){
+  const panel = document.getElementById('detailPanel');
+
+  // title edit
+  panel.querySelectorAll('[data-title-id]').forEach(el=>{
+    el.addEventListener('input', ()=>{
+      const id = el.getAttribute('data-title-id');
+      const p = state.projects.find(x=>x.id===id);
+      if(p){
+        p.title = el.textContent;
+        saveData();
+        // keep sidebar title in sync live without full re-render (avoid losing focus)
+        const sideTitle = document.querySelector(`[data-select="${id}"] .sidebar-item-title`);
+        if(sideTitle) sideTitle.textContent = p.title;
+      }
+    });
+    el.addEventListener('blur', ()=> saveData());
+  });
+
+  // status selector
+  panel.querySelectorAll('[data-status-opt]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const pid = el.getAttribute('data-pid');
+      const status = el.getAttribute('data-status-opt');
+      const p = state.projects.find(x=>x.id===pid);
+      if(p){ p.status = status; saveData(); render(); }
+    });
+  });
+
+  // milestone buttons - click to jump progress to that %
+  panel.querySelectorAll('[data-milestone-pct]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-del-milestone]')) return; // delete button handles its own click
+      const pid = el.getAttribute('data-pid');
+      const pct = parseInt(el.getAttribute('data-milestone-pct'),10);
+      const p = state.projects.find(x=>x.id===pid);
+      if(p){
+        p.progress = pct;
+        saveData();
+        render();
+      }
+    });
+  });
+
+  // delete a milestone definition (removes from global shared list)
+  panel.querySelectorAll('[data-del-milestone]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const pct = parseInt(el.getAttribute('data-del-milestone'),10);
+      const m = state.progressMilestones.find(x=>x.pct===pct);
+      const label = m ? m.label : (pct+'%');
+      if(!confirm(`Xoá mốc tiến độ "${pct}% - ${label}"? Mốc này sẽ bị xoá khỏi tất cả dự án.`)) return;
+      state.progressMilestones = state.progressMilestones.filter(x=>x.pct!==pct);
+      saveData();
+      render();
+      showToast('Đã xoá mốc tiến độ');
+    });
+  });
+
+  // add new custom milestone (global, shared across all projects)
+  panel.querySelectorAll('[data-add-milestone]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const pid = el.getAttribute('data-add-milestone');
+      const pctRaw = prompt('Nhập tỉ lệ % cho mốc mới (0-100):');
+      if(pctRaw === null) return;
+      const pct = parseInt(pctRaw, 10);
+      if(isNaN(pct) || pct < 0 || pct > 100){
+        showToast('Tỉ lệ % không hợp lệ');
+        return;
+      }
+      const labelText = prompt('Nhập tiêu đề cho mốc ' + pct + '%:');
+      if(labelText === null) return;
+      const label = labelText.trim() || ('Mốc ' + pct + '%');
+
+      const exists = state.progressMilestones.find(m=>m.pct===pct);
+      if(exists){
+        exists.label = label;
+      } else {
+        state.progressMilestones.push({pct, label});
+      }
+      saveData();
+      expandedId = pid;
+      render();
+      showToast('Đã thêm mốc tiến độ mới');
+    });
+  });
+
+  // summary textarea
+  panel.querySelectorAll('[data-summary-id]').forEach(el=>{
+    el.addEventListener('input', ()=>{
+      const pid = el.getAttribute('data-summary-id');
+      const p = state.projects.find(x=>x.id===pid);
+      if(p){ p.summary = el.value; saveData(); }
+    });
+  });
+
+  // status note textarea
+  panel.querySelectorAll('[data-statusnote-id]').forEach(el=>{
+    el.addEventListener('input', ()=>{
+      const pid = el.getAttribute('data-statusnote-id');
+      const p = state.projects.find(x=>x.id===pid);
+      if(p){ p.statusNote = el.value; saveData(); }
+    });
+  });
+
+  // add note
+  panel.querySelectorAll('[data-add-note]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      addNote(el.getAttribute('data-add-note'));
+    });
+  });
+
+  // note text edit
+  panel.querySelectorAll('[data-note-text]').forEach(el=>{
+    el.addEventListener('input', ()=>{
+      const pid = el.getAttribute('data-pid');
+      const nid = el.getAttribute('data-note-id');
+      const p = state.projects.find(x=>x.id===pid);
+      if(p){
+        const n = p.notes.find(x=>x.id===nid);
+        if(n){ n.text = el.textContent; saveData(); }
+      }
+    });
+  });
+
+  // note check toggle
+  panel.querySelectorAll('[data-note-check]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      toggleNote(el.getAttribute('data-pid'), el.getAttribute('data-note-check'));
+    });
+  });
+
+  // note delete
+  panel.querySelectorAll('[data-note-del]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      deleteNote(el.getAttribute('data-pid'), el.getAttribute('data-note-del'));
+    });
+  });
+
+  // note date fields (start / expected)
+  panel.querySelectorAll('[data-note-date]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const pid = el.getAttribute('data-pid');
+      const nid = el.getAttribute('data-note-id');
+      const which = el.getAttribute('data-note-date');
+      const p = state.projects.find(x=>x.id===pid);
+      if(!p) return;
+      const n = p.notes.find(x=>x.id===nid);
+      if(!n) return;
+      if(which==='start') n.startDate = el.value;
+      else if(which==='expected') n.expectedDate = el.value;
+      saveData();
+      render();
+    });
+  });
+
+  // project-level date fields (start / expected / deadline) - drives "Thời gian thực hiện" warning
+  panel.querySelectorAll('[data-project-date]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const pid = el.getAttribute('data-pid');
+      const which = el.getAttribute('data-project-date');
+      const p = state.projects.find(x=>x.id===pid);
+      if(!p) return;
+      if(which==='start') p.startDate = el.value;
+      else if(which==='expected') p.expectedDate = el.value;
+      else if(which==='deadline') p.deadline = el.value;
+      saveData();
+      render(); // re-render recalculates badge fresh from current dates every time
+    });
+  });
+
+  // delete project
+  panel.querySelectorAll('[data-del-project]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      deleteProject(el.getAttribute('data-del-project'));
+    });
+  });
+}
+
+document.getElementById('fabAdd').addEventListener('click', addProject);
+
+/* seed example on very first run */
+if(state.projects.length===0 && !localStorage.getItem(STORAGE_KEY)){
+  const today = new Date();
+  const fmt = (d)=> d.toISOString().slice(0,10);
+  const addDays = (base, days)=>{ const d = new Date(base); d.setDate(d.getDate()+days); return d; };
+
+  state.projects.push({
+    id: uid(),
+    title: 'Xây dựng nhà xưởng Khu B',
+    status: 'warn',
+    progress: 60,
+    summary: 'Thi công kết cấu thép và lắp đặt hệ thống điện cho nhà xưởng số 2, khu công nghiệp B. Dự kiến hoàn thành quý III.',
+    statusNote: 'Khung thép đã hoàn thành 70%. Vật liệu điện đang chậm giao do nhà cung cấp, dự kiến nhận hàng cuối tuần này. Cần theo dõi sát tiến độ nhà thầu phụ.',
+    startDate: fmt(addDays(today,-20)),
+    expectedDate: fmt(addDays(today,2)),
+    deadline: fmt(addDays(today,10)),
+    notes: [
+      {
+        id:uid(), text:'Kiểm tra tiến độ lắp đặt khung thép tầng 2', checked:false, day: todayKey(),
+        startDate: fmt(addDays(today,-5)), expectedDate: fmt(addDays(today,10)), deadline: fmt(addDays(today,20))
+      },
+      {
+        id:uid(), text:'Họp với nhà thầu phụ về vật liệu chậm giao', checked:false, day: todayKey(),
+        startDate: fmt(addDays(today,-3)), expectedDate: fmt(addDays(today,1)), deadline: fmt(addDays(today,5))
+      },
+      {
+        id:uid(), text:'Duyệt bản vẽ thi công hệ thống điện', checked:false, day: todayKey(),
+        startDate: fmt(addDays(today,-10)), expectedDate: fmt(addDays(today,-4)), deadline: fmt(addDays(today,-1))
+      },
+      {
+        id:uid(), text:'Nghiệm thu phần móng', checked:true, day: todayKey(),
+        startDate: fmt(addDays(today,-15)), expectedDate: fmt(addDays(today,-8)), deadline: fmt(addDays(today,-6))
+      }
+    ]
+  });
+  saveData();
+}
+
+render();
+
+/* register service worker for installability (optional/best-effort) */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>

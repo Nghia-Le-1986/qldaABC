@@ -1,0 +1,24 @@
+{
+  "name": "Quản Lý Dự Án",
+  "short_name": "QL Dự Án",
+  "description": "Ứng dụng theo dõi tình trạng và công việc các dự án của công ty",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0F1F38",
+  "theme_color": "#0F1F38",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
