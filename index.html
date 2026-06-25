@@ -6,6 +6,71 @@
 <meta name="theme-color" content="#0F1F38">
 <title>Quản Lý Dự Án</title>
 <link rel="manifest" href="manifest.json">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  /* =====================================================================
+     FIREBASE CONFIG — dán config thật từ Firebase Console vào đây.
+     Cho đến khi được điền, app tự động chạy ở chế độ chỉ-localStorage
+     (offline), không lỗi, không mất chức năng — chỉ là chưa đồng bộ online.
+     ===================================================================== */
+  const firebaseConfig = {
+    apiKey: "AIzaSyD9FCXOHT8MVT4FcdEwnMoiuqbzuBwolq0",
+    authDomain: "quan-ly-du-an---abc.firebaseapp.com",
+    databaseURL: "https://quan-ly-du-an---abc-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "quan-ly-du-an---abc",
+    storageBucket: "quan-ly-du-an---abc.firebasestorage.app",
+    messagingSenderId: "352116709912",
+    appId: "1:352116709912:web:5ee1e06f834a6d04a7416d"
+  };
+
+  const FIREBASE_ENABLED = firebaseConfig.apiKey !== "REPLACE_ME";
+  let db = null;
+  let dbRef = null;
+
+  if(FIREBASE_ENABLED){
+    try{
+      const app = initializeApp(firebaseConfig);
+      db = getDatabase(app);
+      dbRef = ref(db, 'pm_app_data_v1');
+    }catch(e){
+      console.error('Firebase init failed, falling back to localStorage only', e);
+    }
+  }
+
+  // Expose a small bridge so the main (non-module) script below can use Firebase.
+  window.__firebaseBridge = {
+    enabled: FIREBASE_ENABLED && !!dbRef,
+    async fetchRemote(){
+      if(!dbRef) return null;
+      try{
+        const snap = await get(dbRef);
+        return snap.exists() ? snap.val() : null;
+      }catch(e){
+        console.error('Firebase fetch failed', e);
+        return null;
+      }
+    },
+    async pushRemote(data){
+      if(!dbRef) return false;
+      try{
+        await set(dbRef, data);
+        return true;
+      }catch(e){
+        console.error('Firebase write failed', e);
+        return false;
+      }
+    },
+    listenRemote(callback){
+      if(!dbRef) return;
+      onValue(dbRef, (snap)=>{
+        if(snap.exists()) callback(snap.val());
+      });
+    }
+  };
+  window.dispatchEvent(new Event('firebase-bridge-ready'));
+</script>
 <style>
   :root{
     --navy-950:#0A1628;
@@ -557,7 +622,12 @@
   .footer-note{
     text-align:center; font-size:11px; color:#B6B2A4;
     padding:14px 20px 22px;
+    transition:color 0.2s;
   }
+  .footer-note[data-mode="synced"]{color:var(--ok);}
+  .footer-note[data-mode="syncing"]{color:var(--steel-400);}
+  .footer-note[data-mode="error"]{color:var(--risk);}
+  .footer-note[data-mode="offline"]{color:#B6B2A4;}
 
   /* toast */
   .toast{
@@ -675,14 +745,23 @@
     </section>
   </main>
 
-  <div class="footer-note">Dữ liệu được lưu tự động trên thiết bị này</div>
+  <div class="footer-note" id="syncIndicator" data-mode="offline">💾 Chỉ lưu trên máy này (chưa kết nối online)</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* ===== STORAGE ===== */
+/* ===== STORAGE =====
+Chiến lược "offline-first + online-sync":
+- localStorage luôn là nguồn đọc/ghi NGAY LẬP TỨC (app không bao giờ phải chờ mạng để hoạt động).
+- Nếu Firebase đã được cấu hình (xem firebaseConfig ở <head>), mỗi lần saveData() cũng đẩy
+  dữ liệu lên Firebase ở chế độ nền (không chặn UI). Khi mở app trên thiết bị khác, app sẽ
+  thử tải dữ liệu mới nhất từ Firebase trước khi vẽ giao diện.
+- Một listener real-time (onValue) sẽ tự render() lại khi dữ liệu đổi từ thiết bị khác,
+  miễn là thiết bị đó không phải là nguồn vừa ghi (tránh tự ghi-đè-lên-chính-mình gây giật).
+*/
 const STORAGE_KEY = 'pm_app_data_v1';
+let isApplyingRemoteUpdate = false; // true trong lúc đang áp dụng dữ liệu vừa nhận từ Firebase
 
 const DEFAULT_MILESTONES = [
   {pct:10,  label:'Đang nghiên cứu dự án'},
@@ -693,30 +772,97 @@ const DEFAULT_MILESTONES = [
   {pct:100, label:'Hoàn thành'}
 ];
 
-function loadData(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      if(!Array.isArray(parsed.progressMilestones) || parsed.progressMilestones.length===0){
-        parsed.progressMilestones = DEFAULT_MILESTONES.slice();
-      }
-      return parsed;
-    }
-  }catch(e){}
+function defaultState(){
   return {
     companyName: 'ABC SOLUTIONS',
     projects: [],
     progressMilestones: DEFAULT_MILESTONES.slice()
   };
 }
-function saveData(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+function normalizeState(parsed){
+  if(!parsed) return defaultState();
+  if(!Array.isArray(parsed.progressMilestones) || parsed.progressMilestones.length===0){
+    parsed.progressMilestones = DEFAULT_MILESTONES.slice();
+  }
+  if(!Array.isArray(parsed.projects)) parsed.projects = [];
+  if(typeof parsed.companyName !== 'string') parsed.companyName = 'ABC SOLUTIONS';
+  return parsed;
 }
 
-let state = loadData();
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return normalizeState(JSON.parse(raw));
+  }catch(e){}
+  return defaultState();
+}
+
+function saveLocal(data){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){
+    console.error('localStorage save failed', e);
+  }
+}
+
+let state = loadLocal(); // dữ liệu hiển thị ngay lập tức, không chờ mạng
 let expandedId = null;
 let milestonePickerOpen = false; // whether the milestone picker dropdown is expanded in the currently open project
+
+function saveData(){
+  saveLocal(state);
+  // đẩy lên Firebase ở chế độ nền — không chặn UI, không cần chờ kết quả
+  if(window.__firebaseBridge && window.__firebaseBridge.enabled && !isApplyingRemoteUpdate){
+    window.__firebaseBridge.pushRemote(state).then(ok=>{
+      setSyncIndicator(ok ? 'synced' : 'error');
+    });
+    setSyncIndicator('syncing');
+  }
+}
+
+function setSyncIndicator(mode){
+  const el = document.getElementById('syncIndicator');
+  if(!el) return;
+  el.setAttribute('data-mode', mode);
+  const labels = {
+    synced: '☁ Đã đồng bộ online',
+    syncing: '☁ Đang đồng bộ...',
+    error: '⚠ Lỗi đồng bộ, đã lưu tạm trên máy',
+    offline: '💾 Chỉ lưu trên máy này (chưa kết nối online)'
+  };
+  el.textContent = labels[mode] || '';
+}
+
+/* Khởi động: thử tải dữ liệu mới nhất từ Firebase (nếu có cấu hình), rồi mới vẽ UI.
+   Nếu không có Firebase hoặc lỗi mạng, dùng ngay dữ liệu local đã có để app luôn dùng được. */
+async function initRemoteSync(){
+  if(!(window.__firebaseBridge && window.__firebaseBridge.enabled)){
+    setSyncIndicator('offline');
+    return;
+  }
+  setSyncIndicator('syncing');
+  const remote = await window.__firebaseBridge.fetchRemote();
+  if(remote){
+    state = normalizeState(remote);
+    saveLocal(state); // đồng bộ ngược lại vào local để lần mở sau (mất mạng) vẫn có dữ liệu mới nhất
+    render();
+  } else if(state.projects.length > 0 || Object.keys(localStorage).length){
+    // chưa có gì trên Firebase nhưng máy này đã có dữ liệu local -> đẩy lên làm bản gốc đầu tiên
+    window.__firebaseBridge.pushRemote(state);
+  }
+  setSyncIndicator('synced');
+
+  // lắng nghe thay đổi real-time từ các thiết bị khác
+  window.__firebaseBridge.listenRemote((remoteData)=>{
+    isApplyingRemoteUpdate = true;
+    state = normalizeState(remoteData);
+    saveLocal(state);
+    render();
+    isApplyingRemoteUpdate = false;
+    setSyncIndicator('synced');
+  });
+}
 
 /* ===== CLOCK ===== */
 const dayNames = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
@@ -1477,6 +1623,22 @@ if(state.projects.length===0 && !localStorage.getItem(STORAGE_KEY)){
 }
 
 render();
+
+/* Khởi động đồng bộ online: chờ module Firebase (ở <head>) báo sẵn sàng rồi mới gọi,
+   để tránh trường hợp window.__firebaseBridge chưa kịp tồn tại do thứ tự tải script. */
+let __remoteSyncStarted = false;
+function __startRemoteSyncOnce(){
+  if(__remoteSyncStarted) return;
+  __remoteSyncStarted = true;
+  initRemoteSync();
+}
+if(window.__firebaseBridge){
+  __startRemoteSyncOnce();
+} else {
+  window.addEventListener('firebase-bridge-ready', __startRemoteSyncOnce, {once:true});
+  // phòng trường hợp event bắn ra trước khi listener này được gắn (hiếm, nhưng để chắc chắn)
+  setTimeout(()=>{ if(window.__firebaseBridge) __startRemoteSyncOnce(); }, 800);
+}
 
 /* register service worker for installability (optional/best-effort) */
 if('serviceWorker' in navigator){
