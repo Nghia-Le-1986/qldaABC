@@ -772,6 +772,16 @@ const DEFAULT_MILESTONES = [
   {pct:100, label:'Hoàn thành'}
 ];
 
+const STATUS_DEFS = {
+  ok:   {label:'Đúng tiến độ', chip:'chip-ok', bar:'bar-ok'},
+  warn: {label:'Cần theo dõi', chip:'chip-warn', bar:'bar-warn'},
+  risk: {label:'Trễ / Rủi ro', chip:'chip-risk', bar:'bar-risk'},
+  done: {label:'Hoàn thành', chip:'chip-done', bar:'bar-done'}
+};
+
+// Thứ tự ưu tiên hiển thị trong danh sách: Trễ/Rủi ro -> Cần theo dõi -> Đúng tiến độ -> Hoàn thành
+const STATUS_ORDER = {risk:0, warn:1, ok:2, done:3};
+
 function defaultState(){
   return {
     companyName: 'ABC SOLUTIONS',
@@ -780,12 +790,40 @@ function defaultState(){
   };
 }
 
+function normalizeNote(n){
+  if(!n || typeof n !== 'object') n = {};
+  return {
+    id: n.id || uid(),
+    text: typeof n.text === 'string' ? n.text : '',
+    checked: !!n.checked,
+    day: n.day || todayKey(),
+    startDate: n.startDate || '',
+    expectedDate: n.expectedDate || ''
+  };
+}
+
+function normalizeProject(p){
+  if(!p || typeof p !== 'object') p = {};
+  return {
+    id: p.id || uid(),
+    title: typeof p.title === 'string' ? p.title : '',
+    status: (p.status && STATUS_DEFS[p.status]) ? p.status : 'ok',
+    progress: typeof p.progress === 'number' ? p.progress : 0,
+    summary: typeof p.summary === 'string' ? p.summary : '',
+    statusNote: typeof p.statusNote === 'string' ? p.statusNote : '',
+    startDate: p.startDate || '',
+    expectedDate: p.expectedDate || '',
+    deadline: p.deadline || '',
+    notes: Array.isArray(p.notes) ? p.notes.map(normalizeNote) : []
+  };
+}
+
 function normalizeState(parsed){
   if(!parsed) return defaultState();
   if(!Array.isArray(parsed.progressMilestones) || parsed.progressMilestones.length===0){
     parsed.progressMilestones = DEFAULT_MILESTONES.slice();
   }
-  if(!Array.isArray(parsed.projects)) parsed.projects = [];
+  parsed.projects = Array.isArray(parsed.projects) ? parsed.projects.map(normalizeProject) : [];
   if(typeof parsed.companyName !== 'string') parsed.companyName = 'ABC SOLUTIONS';
   return parsed;
 }
@@ -1036,15 +1074,8 @@ function showToast(msg){
   toastTimer = setTimeout(()=> t.classList.remove('show'), 1800);
 }
 
-const STATUS_DEFS = {
-  ok:   {label:'Đúng tiến độ', chip:'chip-ok', bar:'bar-ok'},
-  warn: {label:'Cần theo dõi', chip:'chip-warn', bar:'bar-warn'},
-  risk: {label:'Trễ / Rủi ro', chip:'chip-risk', bar:'bar-risk'},
-  done: {label:'Hoàn thành', chip:'chip-done', bar:'bar-done'}
-};
-
-// Thứ tự ưu tiên hiển thị trong danh sách: Trễ/Rủi ro -> Cần theo dõi -> Đúng tiến độ -> Hoàn thành
-const STATUS_ORDER = {risk:0, warn:1, ok:2, done:3};
+// (STATUS_DEFS và STATUS_ORDER đã được khai báo sớm hơn ở đầu script, ngay sau DEFAULT_MILESTONES,
+// để đảm bảo có sẵn trước khi state khởi tạo gọi tới normalizeProject())
 
 function getSortedProjects(){
   return [...state.projects].sort((a,b)=>{
