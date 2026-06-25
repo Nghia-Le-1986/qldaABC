@@ -1180,7 +1180,29 @@ function updateMeta(){
   document.getElementById('metaRisk').textContent = state.projects.filter(p=>p.status==='risk').length;
 }
 
+/* Kiểm tra người dùng có đang gõ vào một trường nhập liệu nào trong detail-panel không.
+   Dùng để tránh việc render() lại (do nhận update real-time từ Firebase) làm mất focus/con trỏ
+   đang gõ — nếu render lại đúng lúc đang gõ, toàn bộ DOM của ô đó bị tạo mới, gây hiện tượng
+   "bị bật ra ngoài" mỗi khi gõ (đặc biệt rõ với phím space vì gửi nhiều sự kiện liên tiếp). */
+function isUserCurrentlyTyping(){
+  const el = document.activeElement;
+  if(!el) return false;
+  const tag = el.tagName;
+  const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
+  if(!isEditable) return false;
+  const panel = document.getElementById('detailPanel');
+  const companyField = document.getElementById('companyName');
+  return (panel && panel.contains(el)) || el === companyField;
+}
+
 function render(){
+  if(isUserCurrentlyTyping()){
+    // Người dùng đang gõ: chỉ cập nhật phần không ảnh hưởng tới ô đang nhập (sidebar, số liệu tổng),
+    // KHÔNG vẽ lại detail-panel để tránh làm mất focus/con trỏ giữa lúc đang gõ.
+    updateMeta();
+    renderSidebar();
+    return;
+  }
   updateMeta();
   renderSidebar();
   renderDetail();
