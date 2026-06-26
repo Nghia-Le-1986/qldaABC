@@ -122,7 +122,7 @@
   .header{
     background:linear-gradient(160deg, var(--navy-950) 0%, var(--navy-800) 100%);
     color:var(--paper);
-    padding:28px 40px 22px;
+    padding:14px 40px 12px;
     position:sticky;
     top:0;
     z-index:20;
@@ -153,24 +153,24 @@
     min-width:0;
   }
   .brand-logo{
-    height:56px;
+    height:38px;
     width:auto;
     flex-shrink:0;
   }
   .company-block{flex:1; min-width:0;}
   .company-label{
-    font-size:11.5px;
-    letter-spacing:0.16em;
+    font-size:10px;
+    letter-spacing:0.14em;
     text-transform:uppercase;
     color:var(--steel-300);
     font-weight:600;
-    margin:0 0 4px;
+    margin:0 0 2px;
   }
   .company-name{
     font-family:'Georgia','Times New Roman',serif;
-    font-size:30px;
+    font-size:21px;
     font-weight:700;
-    line-height:1.15;
+    line-height:1.1;
     margin:0;
     color:#fff;
     word-break:break-word;
@@ -188,32 +188,32 @@
   }
   .clock-time{
     font-family:'SF Mono','Courier New',monospace;
-    font-size:26px;
+    font-size:19px;
     font-weight:700;
     letter-spacing:0.02em;
     color:#5DA8F0;
   }
   .clock-date{
-    font-size:12.5px;
+    font-size:11px;
     color:var(--steel-300);
-    margin-top:4px;
+    margin-top:2px;
     text-transform:capitalize;
   }
 
   .header-meta{
     display:flex;
-    gap:14px;
-    margin-top:16px;
+    gap:10px;
+    margin-top:9px;
     position:relative;
     z-index:1;
   }
   .meta-pill{
-    font-size:12.5px;
+    font-size:11px;
     color:var(--steel-300);
     background:rgba(255,255,255,0.06);
     border:1px solid var(--line);
     border-radius:20px;
-    padding:5px 12px;
+    padding:3px 10px;
     display:flex;
     align-items:center;
     gap:5px;
@@ -413,6 +413,16 @@
   .status-opt.active-risk{background:var(--risk); border-color:var(--risk); color:#fff;}
   .status-opt.active-done{background:var(--done); border-color:var(--done); color:#fff;}
 
+  .status-suggest-hint{
+    margin-top:9px;
+    font-size:12px; line-height:1.5;
+    color:var(--amber-dim);
+    background:#FBEADB;
+    border-radius:8px;
+    padding:8px 11px;
+  }
+  .status-suggest-hint b{font-weight:700;}
+
   textarea, input.text-input{
     width:100%;
     border:1.5px solid #E3E0D5;
@@ -508,6 +518,157 @@
     cursor:pointer; transition:all 0.15s; width:100%;
   }
   .milestone-add-btn:hover{border-color:var(--brand); color:var(--brand-dim);}
+
+  /* ===== BOM (Bill of Materials) — Danh sách đặt hàng ===== */
+  .bom-summary-row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; cursor:pointer; padding:10px 12px;
+    background:#FCFBF8; border:1px solid #ECE9DE; border-radius:10px;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .bom-summary-row:hover{border-color:var(--brand); background:#F8FAFD;}
+  .bom-summary-meta{
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; color:var(--steel-400); font-weight:600;
+    flex-shrink:0; white-space:nowrap;
+  }
+  .bom-open-icon{
+    width:15px; height:15px; color:var(--brand); flex-shrink:0; margin-left:2px;
+  }
+
+  /* Modal overlay hiện khi bấm vào dòng tóm tắt BOM */
+  .bom-modal-overlay{
+    display:none;
+    position:fixed; inset:0; z-index:100;
+    background:rgba(10,22,40,0.5);
+    align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .bom-modal-overlay.open{display:flex;}
+  .bom-modal{
+    background:#fff; border-radius:16px;
+    width:100%; max-width:1080px;
+    max-height:88vh;
+    display:flex; flex-direction:column;
+    box-shadow:0 24px 60px rgba(10,22,40,0.35);
+    overflow:hidden;
+  }
+  .bom-modal-header{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap:14px; padding:20px 24px 16px;
+    border-bottom:1px solid #ECE9DE;
+    flex-shrink:0;
+  }
+  .bom-modal-eyebrow{
+    font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--steel-400); font-weight:700; margin:0 0 4px;
+  }
+  .bom-modal-title{
+    font-size:18px; font-weight:700; color:var(--navy-900); margin:0;
+  }
+  .bom-modal-close{
+    width:32px; height:32px; border-radius:8px; border:none;
+    background:var(--paper-dim); color:var(--navy-700);
+    cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .bom-modal-close:hover{background:#E3E0D5;}
+  .bom-modal-body{
+    padding:18px 24px 24px;
+    overflow-y:auto;
+    flex:1;
+  }
+
+  .bom-table-scroll{
+    overflow-x:auto;
+    border:1px solid #ECE9DE;
+    border-radius:10px;
+    background:#FCFBF8;
+  }
+  .bom-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+    min-width:920px; /* đảm bảo đủ chỗ cho tất cả các cột, cuộn ngang khi hẹp hơn */
+  }
+  .bom-table thead th{
+    text-align:left;
+    font-size:10.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+    color:var(--steel-400);
+    padding:9px 8px;
+    border-bottom:1.5px solid #ECE9DE;
+    white-space:nowrap;
+  }
+  .bom-table tbody td{
+    padding:5px 6px;
+    border-bottom:1px solid #F0EEE6;
+    vertical-align:middle;
+  }
+  .bom-table tbody tr:last-child td{border-bottom:none;}
+  .bom-table tbody tr:hover{background:#F8F6EF;}
+
+  .bom-col-name{min-width:150px;}
+  .bom-col-pn{min-width:120px;}
+  .bom-col-vendor{min-width:110px;}
+  .bom-col-num{min-width:72px;}
+  .bom-col-price{min-width:100px;}
+  .bom-col-status{min-width:110px;}
+  .bom-col-note{min-width:140px;}
+  .bom-col-del{width:36px;}
+
+  .bom-input{
+    width:100%;
+    border:1.3px solid transparent;
+    border-radius:6px;
+    padding:6px 7px;
+    font-family:inherit;
+    font-size:12.5px;
+    color:var(--navy-900);
+    background:transparent;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .bom-input:hover{background:#fff; border-color:#E3E0D5;}
+  .bom-input:focus{outline:none; background:#fff; border-color:var(--steel-400);}
+  .bom-input.bom-mono{font-family:'SF Mono','Courier New',monospace; font-size:11.5px;}
+  .bom-input.bom-num{text-align:right; font-family:'SF Mono','Courier New',monospace;}
+
+  .bom-total-cell{
+    font-family:'SF Mono','Courier New',monospace;
+    font-size:12px; font-weight:700; color:var(--navy-700);
+    text-align:right; white-space:nowrap; padding-right:10px;
+  }
+
+  select.bom-input{cursor:pointer; font-weight:600; appearance:none; padding-right:18px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238FA8CC' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 4px center; background-size:11px;
+  }
+  .bom-status-not_ordered{color:var(--steel-400);}
+  .bom-status-ordering{color:var(--amber-dim);}
+  .bom-status-arrived{color:var(--ok);}
+
+  .bom-del-btn{
+    width:24px; height:24px; border:none; background:transparent;
+    color:#D3CFC2; cursor:pointer; border-radius:5px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .bom-del-btn:hover{background:#F4E5E2; color:var(--risk);}
+
+  .bom-empty-row td{
+    text-align:center; color:#C2CADC; font-size:12px; padding:20px 0;
+  }
+
+  .bom-footer-label{
+    text-align:right; font-size:11.5px; font-weight:700;
+    color:var(--steel-400); padding:10px 8px;
+  }
+  .bom-footer-total{
+    font-family:'SF Mono','Courier New',monospace;
+    font-size:13px; font-weight:800; color:var(--brand-dim);
+    text-align:right; padding:10px 10px 10px 6px; white-space:nowrap;
+  }
+  .bom-table tfoot tr td{border-top:1.5px solid #ECE9DE; border-bottom:none;}
+
+  .bom-wrap .add-note-btn{margin-top:10px;}
 
   /* Today's notes list */
   .note-list{display:flex; flex-direction:column; gap:9px;}
@@ -667,6 +828,22 @@
     .sidebar{width:280px; padding:14px 10px 100px;}
   }
 
+  /* Màn hình ngang trên điện thoại (Android/iOS xoay ngang): chiều cao khả dụng rất hẹp,
+     nên thu gọn mạnh header — bỏ phần phụ (label, ngày, các pill số liệu) để dồn chỗ
+     cho nội dung chính, chỉ giữ tên công ty và giờ. */
+  @media (max-height:480px) and (orientation:landscape){
+    .header{padding:8px 16px 8px;}
+    .header::after{display:none;}
+    .brand-logo{height:28px;}
+    .company-label{display:none;}
+    .company-name{font-size:15px; line-height:1.1;}
+    .clock-block{border-left:1px solid var(--line); padding-left:10px;}
+    .clock-time{font-size:14px;}
+    .clock-date{display:none;}
+    .header-meta{display:none;} /* số liệu tổng quan không thiết yếu khi không gian quá hẹp */
+    .brand-block{gap:10px;}
+  }
+
   @media (max-width:680px){
     .header-top{align-items:flex-start;}
     .clock-block{text-align:right;}
@@ -679,11 +856,13 @@
       position:static;
       width:100%;
       height:auto;
-      min-height:0;
+      min-height:calc(100vh - var(--header-h, 100px) - 40px);
       max-height:none;
       border-right:none;
       border-bottom:1px solid var(--line-dark);
       padding:14px 16px 20px;
+      display:flex;
+      flex-direction:column;
     }
     .detail-panel{
       padding:16px 16px 100px;
@@ -694,11 +873,36 @@
 
     .back-to-list-btn{display:flex;}
 
+    /* Nút "+ Thêm dự án mới": sidebar trên mobile có min-height gần bằng chiều cao màn hình
+       còn lại (sau header), và là flex-column, nên margin-top:auto vẫn đẩy nút xuống cuối
+       khung nhìn thấy được — cân đối, không bị dính ngay sau danh sách dự án ngắn. */
+    .fab{
+      position:static;
+      margin-top:auto;
+    }
+
     /* project-dates-row and milestone rows stack tighter on narrow screens */
     .project-dates-row{flex-direction:column; align-items:stretch; gap:10px;}
     .note-deadline-badge{margin-left:0;}
     .note-dates-row{padding-left:0;}
     .note-row-main{flex-wrap:wrap;}
+
+    /* BOM table: cho phép cuộn ngang mượt trên mobile, không ép vỡ layout */
+    .bom-table-scroll{
+      -webkit-overflow-scrolling:touch;
+      margin:0 -2px; /* để viền bo tròn không bị cấn khi cuộn full-width */
+    }
+    .bom-summary-meta{font-size:11px;}
+
+    /* Modal BOM: trên mobile chiếm gần hết màn hình thay vì popup giữa có viền trắng quanh */
+    .bom-modal-overlay{padding:0;}
+    .bom-modal{
+      max-width:100%; width:100%; height:100%; max-height:100%;
+      border-radius:0;
+    }
+    .bom-modal-header{padding:16px 16px 14px;}
+    .bom-modal-title{font-size:16px;}
+    .bom-modal-body{padding:14px 12px 24px;}
   }
 
   @media (max-width:420px){
@@ -749,6 +953,23 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="bom-modal-overlay" id="bomModalOverlay">
+  <div class="bom-modal" id="bomModal" role="dialog" aria-modal="true">
+    <div class="bom-modal-header">
+      <div>
+        <p class="bom-modal-eyebrow">Danh sách đặt hàng</p>
+        <h3 class="bom-modal-title" id="bomModalTitle">—</h3>
+      </div>
+      <button type="button" class="bom-modal-close" id="bomModalClose" title="Đóng">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="bom-modal-body" id="bomModalBody">
+      <!-- bảng BOM được render vào đây -->
+    </div>
+  </div>
+</div>
 
 <script>
 /* ===== STORAGE =====
@@ -802,6 +1023,27 @@ function normalizeNote(n){
   };
 }
 
+const BOM_STATUS_DEFS = {
+  not_ordered: {label:'Chưa đặt', cls:'bom-status-not_ordered'},
+  ordering:    {label:'Đang chờ', cls:'bom-status-ordering'},
+  arrived:     {label:'Đã về',    cls:'bom-status-arrived'}
+};
+
+function normalizeBomItem(b){
+  if(!b || typeof b !== 'object') b = {};
+  return {
+    id: b.id || uid(),
+    name: typeof b.name === 'string' ? b.name : '',
+    partNumber: typeof b.partNumber === 'string' ? b.partNumber : '',
+    vendor: typeof b.vendor === 'string' ? b.vendor : '',
+    qtyOrder: typeof b.qtyOrder === 'number' ? b.qtyOrder : 0,
+    qtyStock: typeof b.qtyStock === 'number' ? b.qtyStock : 0,
+    unitPrice: typeof b.unitPrice === 'number' ? b.unitPrice : 0,
+    status: (b.status && BOM_STATUS_DEFS[b.status]) ? b.status : 'not_ordered',
+    note: typeof b.note === 'string' ? b.note : ''
+  };
+}
+
 function normalizeProject(p){
   if(!p || typeof p !== 'object') p = {};
   return {
@@ -814,7 +1056,8 @@ function normalizeProject(p){
     startDate: p.startDate || '',
     expectedDate: p.expectedDate || '',
     deadline: p.deadline || '',
-    notes: Array.isArray(p.notes) ? p.notes.map(normalizeNote) : []
+    notes: Array.isArray(p.notes) ? p.notes.map(normalizeNote) : [],
+    bomItems: Array.isArray(p.bomItems) ? p.bomItems.map(normalizeBomItem) : []
   };
 }
 
@@ -847,6 +1090,7 @@ function saveLocal(data){
 let state = loadLocal(); // dữ liệu hiển thị ngay lập tức, không chờ mạng
 let expandedId = null;
 let milestonePickerOpen = false; // whether the milestone picker dropdown is expanded in the currently open project
+let bomModalProjectId = null; // id của project đang mở modal BOM (null = modal đang đóng)
 
 function saveData(){
   saveLocal(state);
@@ -967,6 +1211,64 @@ function getDeadlineBadge(item){
   return {level:'ok', text:`Còn ${diffDays} ngày đến deadline`};
 }
 
+/* ===== TỰ ĐỘNG GỢI Ý TRẠNG THÁI =====
+Không khoá cứng — người dùng vẫn bấm tay đổi trạng thái bất kỳ lúc nào. Hàm này chỉ
+TỰ ĐỘNG ĐỀ XUẤT (set lại p.status) mỗi khi tiến độ % hoặc các mốc ngày thay đổi, để
+trạng thái mặc định luôn phản ánh đúng tình hình mới nhất, theo thứ tự ưu tiên:
+  1. Tiến độ = 100%           -> "Hoàn thành" (done)
+  2. Dự kiến hoàn thành ĐÃ ĐẾN hoặc VƯỢT QUA deadline -> "Trễ / Rủi ro" (risk)
+  3. Còn lại: giữ nguyên trạng thái hiện tại (không tự đổi qua lại giữa "Đúng tiến độ"
+     và "Cần theo dõi" vì đây là 2 mức người dùng tự đánh giá, không có công thức rõ ràng).
+Trả về true nếu có thay đổi trạng thái (để gọi nơi dùng biết cần lưu/render lại).
+*/
+function applyAutoStatus(p){
+  const before = p.status;
+
+  if(p.progress >= 100){
+    p.status = 'done';
+  } else {
+    const deadline = parseLocalDate(p.deadline);
+    const expected = parseLocalDate(p.expectedDate);
+    if(deadline && expected && expected.getTime() >= deadline.getTime()){
+      p.status = 'risk';
+    } else if(before === 'done'){
+      // vừa tụt khỏi 100% (ví dụ chọn lại mốc thấp hơn) và không còn quá hạn -> đưa về "Cần theo dõi"
+      // thay vì giữ nhãn "Hoàn thành" sai sự thật.
+      p.status = 'warn';
+    }
+  }
+
+  return p.status !== before;
+}
+
+/* ===== TỰ ĐỘNG ĐỀ XUẤT TÌNH TRẠNG DỰ ÁN =====
+Quy tắc (kiểm tra lại mỗi lần render, dựa theo ngày hệ thống hiện tại — không chỉ lúc
+người dùng sửa, để dự án tự "trễ" đúng ngày dù không ai mở sửa gì):
+  1. Tiến độ = 100%           -> tự chuyển "Hoàn thành"
+  2. Dự kiến hoàn thành ≥ Deadline (cả hai đã nhập) và tiến độ < 100% -> tự chuyển "Trễ/Rủi ro"
+  3. Ngoài 2 trường hợp trên, KHÔNG tự đổi — giữ nguyên lựa chọn người dùng đã chọn tay
+     (Đúng tiến độ / Cần theo dõi), vì hai mức này mang tính đánh giá chủ quan, không suy
+     được từ số liệu thuần.
+Người dùng vẫn bấm tay đổi sang bất kỳ mức nào được, bình thường — hàm này chỉ chạy để
+TỰ ĐẶT khi rơi đúng 2 điều kiện cứng trên, không khoá nút nào cả.
+*/
+function getAutoStatus(p){
+  if(p.progress === 100) return 'done';
+  const deadline = parseLocalDate(p.deadline);
+  const expected = parseLocalDate(p.expectedDate);
+  if(deadline && expected && expected.getTime() >= deadline.getTime()){
+    return 'risk';
+  }
+  return null; // không có điều kiện cứng nào khớp -> giữ nguyên lựa chọn hiện tại
+}
+
+function applyAutoStatus(p){
+  const auto = getAutoStatus(p);
+  if(auto && p.status !== auto){
+    p.status = auto;
+  }
+}
+
 /* ===== TIMELINE BAR (Bắt đầu -> Dự kiến hoàn thành -> Deadline) =====
 Vẽ một đồ thị ngang đơn giản (SVG) thể hiện 3 mốc thời gian của dự án.
 Trục thời gian được co giãn theo khoảng [start, max(expected, deadline)],
@@ -978,6 +1280,70 @@ function formatDateVN(d){
   const mm = String(d.getMonth()+1).padStart(2,'0');
   return `${dd}/${mm}/${d.getFullYear()}`;
 }
+function formatMoney(n){
+  if(typeof n !== 'number' || isNaN(n)) n = 0;
+  return n.toLocaleString('vi-VN') + ' đ';
+}
+
+function renderBomTable(p){
+  return `
+    <div class="bom-table-scroll">
+      <table class="bom-table">
+        <thead>
+          <tr>
+            <th class="bom-col-name">Tên linh kiện</th>
+            <th class="bom-col-pn">Part Number</th>
+            <th class="bom-col-vendor">Nơi đặt hàng</th>
+            <th class="bom-col-num">SL đặt</th>
+            <th class="bom-col-num">SL tồn kho</th>
+            <th class="bom-col-price">Giá đơn vị</th>
+            <th class="bom-col-price">Tổng tiền</th>
+            <th class="bom-col-status">Trạng thái</th>
+            <th class="bom-col-note">Ghi chú</th>
+            <th class="bom-col-del"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${p.bomItems.map(b=>{
+            const total = (b.qtyOrder||0) * (b.unitPrice||0);
+            return `
+            <tr data-bom-row="${b.id}" data-pid="${p.id}">
+              <td><input type="text" class="bom-input" data-bom-field="name" value="${escapeHtml(b.name)}" placeholder="VD: Tụ điện 100uF"></td>
+              <td><input type="text" class="bom-input bom-mono" data-bom-field="partNumber" value="${escapeHtml(b.partNumber)}" placeholder="VD: GRM188R..."></td>
+              <td><input type="text" class="bom-input" data-bom-field="vendor" value="${escapeHtml(b.vendor)}" placeholder="VD: Digikey, LCSC..."></td>
+              <td><input type="number" min="0" class="bom-input bom-num" data-bom-field="qtyOrder" value="${b.qtyOrder}"></td>
+              <td><input type="number" min="0" class="bom-input bom-num" data-bom-field="qtyStock" value="${b.qtyStock}"></td>
+              <td><input type="number" min="0" step="0.01" class="bom-input bom-num" data-bom-field="unitPrice" value="${b.unitPrice}"></td>
+              <td class="bom-total-cell">${formatMoney(total)}</td>
+              <td>
+                <select class="bom-input bom-select bom-status-${b.status}" data-bom-field="status">
+                  ${Object.entries(BOM_STATUS_DEFS).map(([key,d])=>`<option value="${key}" ${b.status===key?'selected':''}>${d.label}</option>`).join('')}
+                </select>
+              </td>
+              <td><input type="text" class="bom-input" data-bom-field="note" value="${escapeHtml(b.note)}" placeholder="Datasheet, thay thế..."></td>
+              <td>
+                <button type="button" class="bom-del-btn" data-bom-del="${b.id}" data-pid="${p.id}" title="Xoá linh kiện">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+                </button>
+              </td>
+            </tr>
+          `;}).join('')}
+          ${p.bomItems.length===0 ? `<tr class="bom-empty-row"><td colspan="10">Chưa có linh kiện nào trong danh sách</td></tr>` : ''}
+        </tbody>
+        ${p.bomItems.length>0 ? `
+        <tfoot>
+          <tr>
+            <td colspan="6" class="bom-footer-label">Tổng chi phí dự kiến</td>
+            <td class="bom-footer-total">${formatMoney(p.bomItems.reduce((sum,b)=> sum + (b.qtyOrder||0)*(b.unitPrice||0), 0))}</td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>` : ''}
+      </table>
+    </div>
+    <button type="button" class="add-note-btn" data-add-bom="${p.id}">+ Thêm linh kiện</button>
+  `;
+}
+
 function renderTimelineBar(p){
   const start = parseLocalDate(p.startDate);
   const expected = parseLocalDate(p.expectedDate);
@@ -1114,7 +1480,8 @@ function newProject(){
     startDate: '',
     expectedDate: '',
     deadline: '',
-    notes: []
+    notes: [],
+    bomItems: []
   };
 }
 
@@ -1131,11 +1498,16 @@ function addProject(){
 }
 
 function deleteProject(id){
-  if(!confirm('Xoá dự án này? Hành động không thể hoàn tác.')) return;
-  state.projects = state.projects.filter(p=>p.id!==id);
+  const p = state.projects.find(x=>x.id===id);
+  const title = p && p.title && p.title.trim() ? p.title.trim() : '';
+  const message = title
+    ? `Xoá dự án "${title}"? Hành động không thể hoàn tác.`
+    : 'Xoá dự án này? Hành động không thể hoàn tác.';
+  if(!confirm(message)) return;
+  state.projects = state.projects.filter(x=>x.id!==id);
   saveData();
   render();
-  showToast('Đã xoá dự án');
+  showToast(title ? `Đã xoá dự án "${title}"` : 'Đã xoá dự án');
 }
 
 function addNote(projectId){
@@ -1188,14 +1560,38 @@ function isUserCurrentlyTyping(){
   const el = document.activeElement;
   if(!el) return false;
   const tag = el.tagName;
-  const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
-  if(!isEditable) return false;
+
+  // Chỉ cần bảo vệ các trường gõ TEXT TỰ DO liên tục (mỗi ký tự là một sự kiện 'input'):
+  // input text, textarea, hoặc contenteditable. Các input number/select/date luôn chốt
+  // giá trị bằng event 'change' (khi rời ô) nên render() lại ngay lúc đó là an toàn và
+  // CẦN THIẾT (ví dụ để cập nhật cột "Tổng tiền" trong bảng BOM ngay khi đổi số lượng).
+  const isFreeTextField =
+    (tag === 'INPUT' && (el.type === 'text' || el.type === '')) ||
+    tag === 'TEXTAREA' ||
+    el.isContentEditable;
+
+  if(!isFreeTextField) return false;
   const panel = document.getElementById('detailPanel');
   const companyField = document.getElementById('companyName');
-  return (panel && panel.contains(el)) || el === companyField;
+  const bomModal = document.getElementById('bomModal');
+  return (panel && panel.contains(el)) || el === companyField || (bomModal && bomModal.contains(el));
 }
 
 function render(){
+  // Tự kiểm tra & cập nhật trạng thái theo điều kiện cứng (xem applyAutoStatus) cho MỌI
+  // dự án mỗi lần render — để trạng thái tự đúng theo ngày thật dù không ai mở sửa gì.
+  let anyAutoStatusChanged = false;
+  state.projects.forEach(p=>{
+    const before = p.status;
+    applyAutoStatus(p);
+    if(p.status !== before) anyAutoStatusChanged = true;
+  });
+  if(anyAutoStatusChanged && !isApplyingRemoteUpdate){
+    // Lưu lại ngay khi có thay đổi thật (không lưu mỗi lần render để tránh ghi dư thừa
+    // và tránh vòng lặp với cơ chế đồng bộ real-time).
+    saveData();
+  }
+
   if(isUserCurrentlyTyping()){
     // Người dùng đang gõ: chỉ cập nhật phần không ảnh hưởng tới ô đang nhập (sidebar, số liệu tổng),
     // KHÔNG vẽ lại detail-panel để tránh làm mất focus/con trỏ giữa lúc đang gõ.
@@ -1310,6 +1706,14 @@ function renderDetail(){
             <div class="status-opt ${p.status===key?'active-'+key:''}" data-status-opt="${key}" data-pid="${p.id}">${d.label}</div>
           `).join('')}
         </div>
+        ${(()=>{
+          const auto = getAutoStatus(p);
+          if(auto && auto !== p.status){
+            const autoLabel = STATUS_DEFS[auto].label;
+            return `<div class="status-suggest-hint">💡 Gợi ý: nên chuyển sang "<b>${autoLabel}</b>" — ${auto==='done' ? 'tiến độ đã đạt 100%' : 'ngày dự kiến hoàn thành đã chạm/vượt deadline'}</div>`;
+          }
+          return '';
+        })()}
       </div>
 
       <div class="field-row">
@@ -1405,6 +1809,17 @@ function renderDetail(){
         <button class="add-note-btn" data-add-note="${p.id}">+ Thêm lưu ý công việc</button>
       </div>
 
+      <div class="field-row">
+        <div class="bom-summary-row" data-bom-open="${p.id}">
+          <span class="field-label" style="margin-bottom:0;"><span class="dot"></span>Danh sách đặt hàng (BOM)</span>
+          <span class="bom-summary-meta">
+            ${p.bomItems.length} linh kiện
+            ${p.bomItems.length>0 ? `· ${formatMoney(p.bomItems.reduce((sum,b)=> sum + (b.qtyOrder||0)*(b.unitPrice||0), 0))}` : ''}
+            <svg class="bom-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </div>
+      </div>
+
       <div class="card-footer-actions">
         <button class="del-project-btn" data-del-project="${p.id}">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1478,6 +1893,7 @@ function attachDetailEvents(currentId){
       const p = state.projects.find(x=>x.id===pid);
       if(p){
         p.progress = pct;
+        applyAutoStatus(p);
         saveData();
         milestonePickerOpen = false; // collapse after picking
         render();
@@ -1607,8 +2023,16 @@ function attachDetailEvents(currentId){
       if(which==='start') p.startDate = el.value;
       else if(which==='expected') p.expectedDate = el.value;
       else if(which==='deadline') p.deadline = el.value;
+      applyAutoStatus(p);
       saveData();
       render(); // re-render recalculates badge fresh from current dates every time
+    });
+  });
+
+  // mở modal BOM
+  panel.querySelectorAll('[data-bom-open]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      openBomModal(el.getAttribute('data-bom-open'));
     });
   });
 
@@ -1621,6 +2045,115 @@ function attachDetailEvents(currentId){
 }
 
 document.getElementById('fabAdd').addEventListener('click', addProject);
+
+/* ===== BOM MODAL — Danh sách đặt hàng (Bill of Materials) =====
+Hiện popup riêng giữa màn hình khi bấm vào dòng tóm tắt BOM trong panel chi tiết.
+Modal có chu kỳ render độc lập (renderBomModalContent) để không cần vẽ lại toàn bộ
+panel chi tiết phía sau mỗi khi sửa một dòng linh kiện. */
+function openBomModal(projectId){
+  bomModalProjectId = projectId;
+  document.getElementById('bomModalOverlay').classList.add('open');
+  renderBomModalContent();
+}
+
+function closeBomModal(){
+  bomModalProjectId = null;
+  document.getElementById('bomModalOverlay').classList.remove('open');
+}
+
+function renderBomModalContent(){
+  const p = state.projects.find(x=>x.id===bomModalProjectId);
+  const overlay = document.getElementById('bomModalOverlay');
+  if(!p){
+    overlay.classList.remove('open');
+    return;
+  }
+  document.getElementById('bomModalTitle').textContent = p.title || '(Dự án chưa đặt tên)';
+  document.getElementById('bomModalBody').innerHTML = renderBomTable(p);
+  attachBomModalEvents(p.id);
+
+  // đồng bộ lại dòng tóm tắt BOM ngoài panel chi tiết (số lượng/tổng tiền) nếu đang hiển thị,
+  // không cần render lại toàn bộ panel.
+  const summaryMeta = document.querySelector(`[data-bom-open="${p.id}"] .bom-summary-meta`);
+  if(summaryMeta){
+    const total = p.bomItems.reduce((sum,b)=> sum + (b.qtyOrder||0)*(b.unitPrice||0), 0);
+    summaryMeta.innerHTML = `
+      ${p.bomItems.length} linh kiện
+      ${p.bomItems.length>0 ? `· ${formatMoney(total)}` : ''}
+      <svg class="bom-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    `;
+  }
+}
+
+function attachBomModalEvents(pid){
+  const body = document.getElementById('bomModalBody');
+
+  // thêm linh kiện mới
+  body.querySelectorAll('[data-add-bom]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const p = state.projects.find(x=>x.id===pid);
+      if(!p) return;
+      p.bomItems.push(normalizeBomItem({}));
+      saveData();
+      renderBomModalContent();
+      setTimeout(()=>{
+        const rows = body.querySelectorAll(`[data-bom-row][data-pid="${pid}"] input[data-bom-field="name"]`);
+        if(rows.length) rows[rows.length-1].focus();
+      }, 50);
+    });
+  });
+
+  // xoá linh kiện
+  body.querySelectorAll('[data-bom-del]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const p = state.projects.find(x=>x.id===pid);
+      if(!p) return;
+      p.bomItems = p.bomItems.filter(b=>b.id!==el.getAttribute('data-bom-del'));
+      saveData();
+      renderBomModalContent();
+    });
+  });
+
+  // sửa từng trường của từng dòng
+  body.querySelectorAll('[data-bom-row]').forEach(row=>{
+    const bid = row.getAttribute('data-bom-row');
+    const p = state.projects.find(x=>x.id===pid);
+    if(!p) return;
+    const b = p.bomItems.find(x=>x.id===bid);
+    if(!b) return;
+
+    row.querySelectorAll('input[data-bom-field], select[data-bom-field]').forEach(fieldEl=>{
+      const field = fieldEl.getAttribute('data-bom-field');
+      const isNumeric = field==='qtyOrder' || field==='qtyStock' || field==='unitPrice';
+
+      if(isNumeric || fieldEl.tagName==='SELECT'){
+        // Số lượng/giá/trạng thái: chốt giá trị bằng 'change' rồi render lại nội dung modal
+        // để cập nhật cột "Tổng tiền" — an toàn vì lúc đó người dùng đã rời focus khỏi ô.
+        fieldEl.addEventListener('change', ()=>{
+          const v = parseFloat(fieldEl.value);
+          b[field] = isNaN(v) ? 0 : v;
+          saveData();
+          renderBomModalContent();
+        });
+      } else {
+        // Tên / Part Number / Nơi đặt hàng / Ghi chú: gõ tự do liên tục — cập nhật state
+        // nhưng KHÔNG render lại, để không phá mất focus đang gõ giữa câu.
+        fieldEl.addEventListener('input', ()=>{
+          b[field] = fieldEl.value;
+          saveData();
+        });
+      }
+    });
+  });
+}
+
+document.getElementById('bomModalClose').addEventListener('click', closeBomModal);
+document.getElementById('bomModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'bomModalOverlay') closeBomModal(); // click ra ngoài khung modal để đóng
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && bomModalProjectId) closeBomModal();
+});
 
 /* keep --header-h in sync with the real header height so sidebar sticks right below it,
    even if header content wraps to more lines on narrow screens or long company names */
@@ -1643,7 +2176,7 @@ if(state.projects.length===0 && !localStorage.getItem(STORAGE_KEY)){
   const fmt = (d)=> d.toISOString().slice(0,10);
   const addDays = (base, days)=>{ const d = new Date(base); d.setDate(d.getDate()+days); return d; };
 
-  state.projects.push({
+  state.projects.push(normalizeProject({
     id: uid(),
     title: 'Xây dựng nhà xưởng Khu B',
     status: 'warn',
@@ -1656,22 +2189,39 @@ if(state.projects.length===0 && !localStorage.getItem(STORAGE_KEY)){
     notes: [
       {
         id:uid(), text:'Kiểm tra tiến độ lắp đặt khung thép tầng 2', checked:false, day: todayKey(),
-        startDate: fmt(addDays(today,-5)), expectedDate: fmt(addDays(today,10)), deadline: fmt(addDays(today,20))
+        startDate: fmt(addDays(today,-5)), expectedDate: fmt(addDays(today,10))
       },
       {
         id:uid(), text:'Họp với nhà thầu phụ về vật liệu chậm giao', checked:false, day: todayKey(),
-        startDate: fmt(addDays(today,-3)), expectedDate: fmt(addDays(today,1)), deadline: fmt(addDays(today,5))
+        startDate: fmt(addDays(today,-3)), expectedDate: fmt(addDays(today,1))
       },
       {
         id:uid(), text:'Duyệt bản vẽ thi công hệ thống điện', checked:false, day: todayKey(),
-        startDate: fmt(addDays(today,-10)), expectedDate: fmt(addDays(today,-4)), deadline: fmt(addDays(today,-1))
+        startDate: fmt(addDays(today,-10)), expectedDate: fmt(addDays(today,-4))
       },
       {
         id:uid(), text:'Nghiệm thu phần móng', checked:true, day: todayKey(),
-        startDate: fmt(addDays(today,-15)), expectedDate: fmt(addDays(today,-8)), deadline: fmt(addDays(today,-6))
+        startDate: fmt(addDays(today,-15)), expectedDate: fmt(addDays(today,-8))
+      }
+    ],
+    bomItems: [
+      {
+        id:uid(), name:'Vi điều khiển STM32F103C8T6', partNumber:'STM32F103C8T6',
+        vendor:'LCSC', qtyOrder:50, qtyStock:12, unitPrice:42000,
+        status:'arrived', note:'Dùng cho board điều khiển chính'
+      },
+      {
+        id:uid(), name:'Tụ điện 100uF 25V', partNumber:'CL21A107MQQNNNG',
+        vendor:'Digikey', qtyOrder:200, qtyStock:0, unitPrice:1200,
+        status:'ordering', note:''
+      },
+      {
+        id:uid(), name:'Cảm biến nhiệt độ DS18B20', partNumber:'DS18B20',
+        vendor:'Mouser', qtyOrder:30, qtyStock:0, unitPrice:25000,
+        status:'not_ordered', note:'Cần xác nhận lại số lượng với khách hàng'
       }
     ]
-  });
+  }));
   saveData();
 }
 
