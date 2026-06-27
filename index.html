@@ -893,15 +893,17 @@
       gap:10px;
     }
     .project-dates-row .note-date-field span{
-      width:108px;
+      width:124px;
       flex-shrink:0;
       white-space:nowrap;
+      font-size:10.5px;
+      font-weight:800;
     }
     .project-dates-row .note-date-field input[type=date]{
       flex:1;
       min-width:0;
-      font-size:13px;
-      padding:8px 10px;
+      font-size:12px;
+      padding:5px 6px;
     }
     .note-deadline-badge{margin-left:0;}
     .note-dates-row{padding-left:0;}
@@ -1723,7 +1725,7 @@ function renderDetail(){
     </div>
     <div class="card-sub">
       <span>Tiến độ: <b>${p.progress}%</b></span>
-      <span>Công việc đang thực hiện: <b>${p.notes.filter(n=>n.day===todayKey()).length}</b></span>
+      <span>Công việc đang thực hiện: <b>${p.notes.filter(n=>!n.checked).length}</b></span>
     </div>
     <div class="card-body-inner">
 
