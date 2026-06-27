@@ -881,11 +881,35 @@
       margin-top:auto;
     }
 
-    /* project-dates-row and milestone rows stack tighter on narrow screens */
-    .project-dates-row{flex-direction:column; align-items:stretch; gap:10px;}
+    /* project-dates-row: mỗi field (Bắt đầu / Dự kiến / Deadline) gói gọn thành 1 hàng ngang
+       — nhãn bên trái với độ rộng cố định để 3 hàng thẳng cột, ô ngày bên phải chiếm phần còn
+       lại — thay vì nhãn nằm hẳn 1 dòng riêng phía trên ô ngày to (tốn nhiều chiều cao). */
+    .project-dates-row{
+      flex-direction:column; align-items:stretch; gap:10px;
+    }
+    .project-dates-row .note-date-field{
+      flex-direction:row;
+      align-items:center;
+      gap:10px;
+    }
+    .project-dates-row .note-date-field span{
+      width:108px;
+      flex-shrink:0;
+      white-space:nowrap;
+    }
+    .project-dates-row .note-date-field input[type=date]{
+      flex:1;
+      min-width:0;
+      font-size:13px;
+      padding:8px 10px;
+    }
     .note-deadline-badge{margin-left:0;}
     .note-dates-row{padding-left:0;}
     .note-row-main{flex-wrap:wrap;}
+
+    /* Đồ thị timeline: trên mobile cho to hơn một chút để cân đối với các mục khác,
+       dễ đọc ngày tháng và tên mốc hơn so với kích thước desktop (vốn rất gọn). */
+    .timeline-wrap{padding:14px 14px 10px;}
 
     /* BOM table: cho phép cuộn ngang mượt trên mobile, không ép vỡ layout */
     .bom-table-scroll{
@@ -1203,12 +1227,12 @@ function getDeadlineBadge(item){
   const diffDays = Math.round((deadline - expected) / (1000*60*60*24));
 
   if(diffDays < 0){
-    return {level:'risk', text:`⚠ Quá hạn deadline ${Math.abs(diffDays)} ngày`};
+    return {level:'risk', text:`⚠ Ngày dự kiến hoàn thành trễ deadline ${Math.abs(diffDays)} ngày`};
   }
   if(diffDays === 0){
-    return {level:'warn', text:'Tới hạn deadline'};
+    return {level:'warn', text:'Ngày dự kiến hoàn thành chạm deadline'};
   }
-  return {level:'ok', text:`Còn ${diffDays} ngày đến deadline`};
+  return {level:'ok', text:`Ngày dự kiến hoàn thành cách deadline ${diffDays} ngày`};
 }
 
 /* ===== TỰ ĐỘNG GỢI Ý TRẠNG THÁI =====
@@ -1396,7 +1420,11 @@ function renderTimelineBar(p){
   const tierDateY   = (t)=> t===0 ? trackY+13 : trackY+20;
   const extraBottom = markers.some(m=>m.tier===1) ? 8 : 0;
   const viewH = 44 + extraBottom;
-  const aspectW = 500; // wide virtual canvas so the rendered aspect ratio is a flat horizontal bar
+  // Trên màn hình hẹp (mobile), container đồ thị cũng hẹp hơn — nếu giữ nguyên tỷ lệ khung
+  // hình (aspectW:viewH) như desktop, chiều cao thực tế sẽ bị co lại rất nhỏ, khó đọc chữ.
+  // Giảm aspectW khi viewport hẹp để "vuông hơn", giúp đồ thị to lên cân đối với các mục khác.
+  const isNarrowScreen = window.innerWidth <= 680;
+  const aspectW = isNarrowScreen ? 230 : 500; // canvas ảo hẹp hơn -> cùng độ rộng container, cao hơn
   const scaleX = aspectW / W;
 
   let svg = `<svg viewBox="0 0 ${aspectW} ${viewH}" preserveAspectRatio="none" class="timeline-svg" style="aspect-ratio:${aspectW}/${viewH};">`;
